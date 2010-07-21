@@ -1,3 +1,4 @@
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -13,9 +14,9 @@ import Data.Eq.Approximate
 instance Arbitrary value => Arbitrary (AbsolutelyApproximateValue tolerance value) where
     arbitrary = fmap AbsolutelyApproximateValue arbitrary
 
-type A = AbsolutelyApproximateValue N5 Double
+type A = AbsolutelyApproximateValue (Digits N5) Double
 wrapA :: Double -> A
-wrapA = wrapAbsolutelyApproximateValue
+wrapA = AbsolutelyApproximateValue
 unwrapA :: A -> Double
 unwrapA = unwrapAbsolutelyApproximateValue
 

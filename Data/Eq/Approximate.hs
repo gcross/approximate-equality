@@ -1,3 +1,4 @@
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Data.Eq.Approximate where
@@ -17,69 +18,65 @@ newtype AbsolutelyApproximateValue absolute_tolerance value =
     ,RealFloat
     )
 
-wrapAbsolutelyApproximateValue ::
-    value ->
-    AbsolutelyApproximateValue absolute_tolerance value
-wrapAbsolutelyApproximateValue = AbsolutelyApproximateValue
+class AbsoluteTolerance tolerance where
+    absoluteToleranceOf ::
+        Fractional value =>
+        AbsolutelyApproximateValue tolerance value ->
+        value
 
-absoluteToleranceInDecimalsAsNaturalNumberOf ::
-    AbsolutelyApproximateValue absolute_tolerance value ->
-    absolute_tolerance
-absoluteToleranceInDecimalsAsNaturalNumberOf = undefined
+data Digits n
 
-absoluteToleranceInDecimalsOf ::
-    NaturalNumber absolute_tolerance =>
-    AbsolutelyApproximateValue absolute_tolerance value ->
+getDigitsOfAbsoluteTolerance ::
+    NaturalNumber n =>
+    AbsolutelyApproximateValue (Digits n) value ->
     Int
-absoluteToleranceInDecimalsOf =
-    naturalNumberOf
-    .
-    absoluteToleranceInDecimalsAsNaturalNumberOf
+getDigitsOfAbsoluteTolerance = naturalNumberAsInt . getDigits
+  where
+    getDigits :: AbsolutelyApproximateValue (Digits n) value -> n
+    getDigits _ = undefined
 
-absoluteToleranceOf ::
-    (NaturalNumber absolute_tolerance
-    ,Fractional value
-    ) =>
-    AbsolutelyApproximateValue absolute_tolerance value ->
-    value
-absoluteToleranceOf =
-    recip
-    .
-    fromIntegral
-    .
-    ((10::Integer) ^)
-    .
-    absoluteToleranceInDecimalsOf
+instance NaturalNumber n => AbsoluteTolerance (Digits n) where
+    absoluteToleranceOf =
+        recip
+        .
+        fromInteger
+        .
+        ((10::Integer) ^)
+        .
+        getDigitsOfAbsoluteTolerance
 
-instance (NaturalNumber absolute_tolerance
+instance (AbsoluteTolerance tolerance
          ,Ord value
          ,Fractional value
          ) =>
-         Show (AbsolutelyApproximateValue absolute_tolerance value)
+         Show (AbsolutelyApproximateValue tolerance value)
   where
     show x =
         show (unwrapAbsolutelyApproximateValue x)
         ++ " +/- " ++
         show (absoluteToleranceOf x)
 
-instance (NaturalNumber absolute_tolerance
+instance (AbsoluteTolerance tolerance
          ,Ord value
          ,Fractional value
          ) =>
-         Eq (AbsolutelyApproximateValue absolute_tolerance value)
+         Eq (AbsolutelyApproximateValue tolerance value)
   where
-    a@(AbsolutelyApproximateValue x) == (AbsolutelyApproximateValue y) =
+    a == b =
         abs (x - y) <= absoluteToleranceOf a
-    a@(AbsolutelyApproximateValue x) /= (AbsolutelyApproximateValue y) =
-        abs (x - y) > absoluteToleranceOf a
+      where
+        x = unwrapAbsolutelyApproximateValue a
+        y = unwrapAbsolutelyApproximateValue b
 
-
-instance (NaturalNumber absolute_tolerance
+instance (AbsoluteTolerance tolerance
          ,Ord value
          ,Fractional value
          ) =>
-         Ord (AbsolutelyApproximateValue absolute_tolerance value)
+         Ord (AbsolutelyApproximateValue tolerance value)
   where
-    compare a@(AbsolutelyApproximateValue x) b@(AbsolutelyApproximateValue y)
+    compare a b
       | a == b    = EQ
       | otherwise = compare x y
+      where
+        x = unwrapAbsolutelyApproximateValue a
+        y = unwrapAbsolutelyApproximateValue b
