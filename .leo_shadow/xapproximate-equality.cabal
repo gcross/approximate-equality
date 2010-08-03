@@ -1,0 +1,21 @@
+#--unknown-language--@+leo-ver=4-thin
+#--unknown-language--@+node:gcross.20100802173247.1348:@shadow approximate-equality.cabal
+Name:                approximate-equality
+Version:             1.0
+License:             BSD3
+License-file:        LICENSE
+Author:              Gregory Crosswhite
+Maintainer:          Gregory Crosswhite <gcross@phys.washington.edu>
+Stability:           Provisional
+Synopsis:            Newtype wrappers for approximate equality
+Description:         Approximate equality testing
+Cabal-version:       >=1.2.3
+Build-type:          Simple
+Category:	          Data
+
+Library
+    Build-depends:   base >= 3 && < 5,
+                     type-level-natural-number >= 1.0 && < 1.1
+    Exposed-modules: Data.Eq.Approximate
+#--unknown-language--@-node:gcross.20100802173247.1348:@shadow approximate-equality.cabal
+#--unknown-language--@-leo

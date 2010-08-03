@@ -10,6 +10,7 @@
 <find_panel_settings/>
 <vnodes>
 <v t="gcross.20100730133924.1259"><vh>@chapters</vh></v>
+<v t="gcross.20100802204346.1322"><vh>@edit approximate-equality.cabal</vh></v>
 <v t="gcross.20100730133924.1260"><vh>@shadow Data/Eq/Approximate.hs</vh></v>
 <v t="gcross.20100802173247.1335"><vh>@shadow test.hs</vh></v>
 </vnodes>

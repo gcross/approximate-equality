@@ -1,17 +1,46 @@
 
 {-# LANGUAGE EmptyDataDecls #-}
 
+{-|
+The purpose of this module is to provide newtype wrapper that allows one to effectively override the equality operator of a value so that it is /approximate/ rather than /exact/.  For example, the type
+
+> type ApproximateDouble = AbsolutelyApproximateValue (Digits Five) Double
+
+defines an alias for a wrapper containing 'Double's such that two doubles are equal if they are equal to within five decimals of accuracy;  for example, we have that
+
+> 1 == (1+10^^(-6) :: ApproximateDouble)
+
+evaluates to 'True'.  Note that we did not need to wrap the value @1+10^^(-6)@ since 'AbsolutelyApproximateValue' is an instance of 'Num'.  For convenience, 'Num' as well as many other of the numerical classes such as 'Real' and 'Floating' have all been derived for the wrappers defined in this package so that one can conveniently use the wrapped values in the same way as one would use the values themselves.
+
+Two kinds of wrappers are provided by this package.
+
+* 'AbsolutelyApproximateValue' wraps values that are considered to be equal if their absolute difference falls within the specified tolerance.
+
+* 'RelativelyApproximateValue' wraps values that are considered to be equal if the absolute difference between the values divided by the average of the absolute values is within the given relative tolerance, /or/ if the absolute value of both values falls within the zero tolerance;  the latter case is checked because otherwise no value, no matter how small, would be approximately equal to zero.
+
+The tolerance is specified through a type annotation.  One can use any anotation that one wishes as long as the type is an instance of 'AbsoluteTolerance' (for absolute tolerances) and/or 'RelativeTolerance' and 'ZeroTolerance' (for relative tolerances).  For convenience, this package provides the type 'Digits' that allows one to specify the tolerance in terms of the number of digits, making use of type-level natural numbers.  The annotation @Digits n@ sets the tolerance to @10^-n@, so that in the case of the absolute tolerance and the zero tolerance @n@ is the number of decimal places that numbers have to match to be equal to respectively either each other or to zero, and in the case of relative tolerance @n@ is (roughly) the number of leading digits that two numbers have to match in order to be equal to each other.
+-}
+
 module Data.Eq.Approximate
-    (AbsolutelyApproximateValue(..)
+    (-- * Type wrappers
+     AbsolutelyApproximateValue(..)
     ,RelativelyApproximateValue(..)
-    ,AbsoluteTolerance
-    ,RelativeTolerance
-    ,ZeroTolerance
+     -- * Classes for tolerance type annotations
+     -- $classes
+
+     -- ** Absolute tolerance
+    ,AbsoluteTolerance(..)
+    ,getAbsoluteTolerance
+     -- ** Relative tolerance
+    ,RelativeTolerance(..)
+    ,getRelativeTolerance
+     -- ** Zero tolerance
+    ,ZeroTolerance(..)
+    ,getZeroTolerance
+     -- * Tolerance annotations using Digits
     ,Digits(..)
+    ,unwrapDigits
     ,toleranceFromDigits
-    ,getDigitsOfAbsoluteTolerance
-    ,getDigitsOfRelativeTolerance
-    ,getDigitsOfZeroTolerance
     ) where
 
 import Control.Arrow
@@ -21,28 +50,79 @@ import Text.Printf
 import TypeLevel.NaturalNumber
 
 {-|
-    The newtype AbsolutelyApproximateValue is a wrapper that can contain an arbitrary value tagged with a tolerance.
+The newtype 'AbsolutelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a tolerance; two values are equal to each other if the absolute difference is less than or equal to this tolerance.  The type annotation @absolute_tolerance@, which must be an instance of 'AbsoluteTolerance', specifies the tolerance.  For convenience, one may specify the tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a tolerance of 0.0001).
+
+It is recommended that one use this wrapper by creating aliases, such as
+
+> type ApproximateDouble = AbsolutelyApproximateValue (Digits Five)
+> wrapAD :: Double -> ApproximateDouble
+> wrapAD = AbsolutelyApproximateValue
+> unwrapAD :: ApproximateDouble -> Double
+> unwrapAD = unwrapAbsolutelyApproximateValue
+
+You can then replace the type 'Double' in your code with the type alias @ApproximateDouble@ to get the feature of approximate equality.  Most of the time you will find that you do not need to use wrapping functions to construct wrapped values since 'AbsolutelyApproximateValue' is an instance of whatever numerical types the wrapped value is, so that for example @1 + sqrt 2/3@ is already a value of type @ApproximateDouble@ without needing to be wrapped first.
 -}
 newtype AbsolutelyApproximateValue absolute_tolerance value =
         AbsolutelyApproximateValue { unwrapAbsolutelyApproximateValue :: value }
-
 {-|
-    The newtype RelativelyApproximateValue is a wrapper that can contain an arbitrary value tagged with a tolerance.
+The newtype 'RelativelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a zero tolerance and a relative tolerance;  two values are equal to each other if their absolute values are both less than or equal to the zero tolerance, or if the absolute difference between them divided by the average of the absolute values is less than or equal to the relative tolerance.
+
+The type annotation @zero_tolerance@, which must be an instance of 'ZeroTolerance', specifies the tolerance within which a value is considered to be equal to zero.  For convenience, one may specify the tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a tolerance of 0.0001).
+
+The type annotation @relative_tolerance@, which must be an instance of 'RelativeTolerance', specifies the relative tolerance within which two values that are not approximately equal to zero are considered to be equal to each other.  For convenience, as with the zero tolerance, one may specify the relative tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a relative tolerance of 0.0001, so that two values are equal if they agree to the first four leading digits).
+
+It is recommended that one use this wrapper by creating aliases, such as
+
+> type ApproximateDouble = RelativelyApproximateValue (Digits Five) (Digits Five)
+> wrapAD :: Double -> ApproximateDouble
+> wrapAD = RelativelyApproximateValue
+> unwrapAD :: ApproximateDouble -> Double
+> unwrapAD = unwrapRelativelyApproximateValue
+
+You can then replace the type 'Double' in your code with the type alias @ApproximateDouble@ to get the feature of approximate equality.  Most of the time you will find that you do not need to use wrapping functions to construct wrapped values since 'RelativelyApproximateValue' is an instance of whatever numerical types the wrapped value is, so that for example @1 + sqrt 2/3@ is already a value of type @ApproximateDouble@ without needing to be wrapped first.
 -}
 newtype RelativelyApproximateValue zero_tolerance relative_tolerance value =
         RelativelyApproximateValue { unwrapRelativelyApproximateValue :: value }
+{-|
+Digits is a type constructor that can be used to specify tolerances using type-level natural numbers.  Annoting a wrapper with the type @Digits n@ specifies that the corresponding tolerance has a numerical value of @10^(-n)@.
+-}
 data Digits n
-class AbsoluteTolerance tolerance where
+-- $classes
+-- The classes in this section are used to associate numerical tolerance information with the types that are used to annotate the type wrappers 'AbsolutelyApproximateValue' and 'RelativelyApproximateValue'.  One typically should not need to use them since the annotation @Digits n@ should cover most common cases.
+-- 
+-- One might consider hand-rolling instances in order to obtain faster code (since this will bypass the type-level natural numbers), however I have found in my own experience that using hand-rolled instances rather than @Digits Five@ in my own program resulted in code that was one or two orders of magnitude /slower/ than simply using 'Digits'.  This is not to claim that hand-rolled instances can /never/ be faster than using 'Digits', but one should be careful about trying this without checking whether there really is an improvement.  In general, 'Digits' seems to be fast enough in the common case that hand-rolling instances for speed is unlikely to be worth the trouble.
+{-|
+The class 'AbsoluteTolerance' is used to define the absolute tolerances associated with types that will be used as absolute tolerance type annotations in 'AbsolutelyApproximateValue'.
+-}
+
+class AbsoluteTolerance absolute_tolerance where
+    {-|
+        This method retrieves the numerical absolute tolerance associated with the type;  it should be a constant function.
+    -}
     absoluteToleranceOf ::
         Fractional value =>
-        AbsolutelyApproximateValue tolerance value ->
+        AbsolutelyApproximateValue absolute_tolerance value ->
         value
+{-|
+The class 'RelativeTolerance' is used to define the relative tolerances associated with types that will be used as relative tolerance type annotations in 'RelativelyApproximateValue'.
+-}
+
 class RelativeTolerance relative_tolerance where
+    {-|
+        This method retrieves the numerical relative tolerance associated with the type;  it should be a constant function.
+    -}
     relativeToleranceOf ::
         Fractional value =>
         RelativelyApproximateValue zero_tolerance relative_tolerance value ->
         value
+{-|
+The class 'ZeroTolerance' is used to define the numerical zero tolerances associated with types that will be used as zero tolerance type annotations in 'RelativelyApproximateValue'.
+-}
+
 class ZeroTolerance zero_tolerance where
+    {-|
+        This method retrieves the numerical zero tolerance associated with the type;  it should be a constant function.
+    -}
     zeroToleranceOf ::
         Fractional value =>
         RelativelyApproximateValue zero_tolerance relative_tolerance value ->
@@ -339,48 +419,57 @@ instance NaturalNumber n => AbsoluteTolerance (Digits n) where
     absoluteToleranceOf =
         toleranceFromDigits
         .
-        getDigitsOfAbsoluteTolerance
+        getAbsoluteTolerance
 instance NaturalNumber n => RelativeTolerance (Digits n) where
     relativeToleranceOf =
         toleranceFromDigits
         .
-        getDigitsOfRelativeTolerance
+        getRelativeTolerance
 instance NaturalNumber n => ZeroTolerance (Digits n) where
     zeroToleranceOf =
         toleranceFromDigits
         .
-        getDigitsOfZeroTolerance
-toleranceFromDigits :: Fractional value => Int -> value
+        getZeroTolerance
+{-|
+This is a convenience (constant) function for extracting the type-level natural number contained within the 'Digits' type constructor; it returns the value 'undefined', so don't try to evaluate the result.
+-}
+unwrapDigits :: Digits n -> n
+unwrapDigits _ = undefined
+{-|
+This is a convenience (constant) function that computes the numerical tolerance specified by @Digits n@, which is @10^(-n)@.
+-}
+toleranceFromDigits :: NaturalNumber n => Fractional value => Digits n -> value
 toleranceFromDigits =
     recip
     .
     fromInteger
     .
     ((10::Integer) ^)
-getDigitsOfAbsoluteTolerance ::
-    NaturalNumber n =>
-    AbsolutelyApproximateValue (Digits n) value ->
-    Int
-getDigitsOfAbsoluteTolerance = naturalNumberAsInt . getDigits
-  where
-    getDigits :: AbsolutelyApproximateValue (Digits n) value -> n
-    getDigits _ = undefined
-getDigitsOfRelativeTolerance ::
-    NaturalNumber n =>
-    RelativelyApproximateValue zero_tolerance (Digits n) value ->
-    Int
-getDigitsOfRelativeTolerance = naturalNumberAsInt . getDigits
-  where
-    getDigits :: RelativelyApproximateValue zero_tolerance (Digits n) value -> n
-    getDigits _ = undefined
-getDigitsOfZeroTolerance ::
-    NaturalNumber n =>
-    RelativelyApproximateValue (Digits n) relative_tolerance value ->
-    Int
-getDigitsOfZeroTolerance = naturalNumberAsInt . getDigits
-  where
-    getDigits :: RelativelyApproximateValue (Digits n) relative_tolerance value -> n
-    getDigits _ = undefined
+    .
+    naturalNumberAsInt
+    .
+    unwrapDigits
+{-|
+This is a convenience (constant) function for extracting the relative tolerance type annotation from 'AbsolutelyApproximateValue';  it returns the value 'undefined', so don't try to evaluate the result.
+-}
+getAbsoluteTolerance ::
+    AbsolutelyApproximateValue absolute_tolerance value ->
+    absolute_tolerance
+getAbsoluteTolerance = undefined
+{-|
+This is a convenience (constant) function for extracting the relative tolerance type annotation from 'RelativelyApproximateValue';  it returns the value 'undefined', so don't try to evaluate the result.
+-}
+getRelativeTolerance ::
+    RelativelyApproximateValue zero_tolerance relative_tolerance value ->
+    relative_tolerance
+getRelativeTolerance = undefined
+{-|
+This is a convenience (constant) function for extracting the zero tolerance type annotation from 'RelativelyApproximateValue';  it returns the value 'undefined', so don't try to evaluate the result.
+-}
+getZeroTolerance ::
+    RelativelyApproximateValue zero_tolerance relative_tolerance value ->
+    zero_tolerance
+getZeroTolerance = undefined
 {-# INLINE wrapAAV #-}
 {-# INLINE unwrapAAV #-}
 {-# INLINE liftAAV1 #-}
