@@ -11,6 +11,7 @@
 <vnodes>
 <v t="gcross.20100730133924.1259"><vh>@chapters</vh></v>
 <v t="gcross.20100730133924.1260"><vh>@shadow Data/Eq/Approximate.hs</vh></v>
+<v t="gcross.20100802173247.1335"><vh>@shadow test.hs</vh></v>
 </vnodes>
 <tnodes>
 <t tx="gcross.20100730133924.1259"></t>
