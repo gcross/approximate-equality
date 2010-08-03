@@ -27,7 +27,7 @@ Two kinds of wrappers are provided by this package.
 
 * 'RelativelyApproximateValue' wraps values that are considered to be equal if the absolute difference between the values divided by the average of the absolute values is within the given relative tolerance, /or/ if the absolute value of both values falls within the zero tolerance;  the latter case is checked because otherwise no value, no matter how small, would be approximately equal to zero.
 
-The tolerance is specified through a type annotation.  One can use any anotation that one wishes as long as the type is an instance of 'AbsoluteTolerance' (for absolute tolerances) and/or 'RelativeTolerance' and 'ZeroTolerance' (for relative tolerances).  For convenience, this package provides the type 'Digits' that allows one to specify the tolerance in terms of the number of digits, making use of type-level natural numbers.  The annotation @Digits n@ sets the tolerance to @10^-n@, so that in the case of the absolute tolerance and the zero tolerance @n@ is the number of decimal places that numbers have to match to be equal to respectively either each other or to zero, and in the case of relative tolerance @n@ is (roughly) the number of leading digits that two numbers have to match in order to be equal to each other.
+The tolerance is specified through a type annotation.  One can use any annotation that one wishes as long as the type is an instance of 'AbsoluteTolerance' (for absolute tolerances) and/or 'RelativeTolerance' and 'ZeroTolerance' (for relative tolerances).  For convenience, this package provides the type 'Digits' that allows one to specify the tolerance in terms of the number of digits, making use of type-level natural numbers.  The annotation @Digits n@ sets the tolerance to @10^-n@, so that in the case of the absolute tolerance and the zero tolerance @n@ is the number of decimal places that numbers have to match to be equal to respectively either each other or to zero, and in the case of relative tolerance @n@ is (roughly) the number of leading digits that two numbers have to match in order to be equal to each other.
 -- @-node:gcross.20100802173247.1349:<< Module description >>
 -- @nl
 -}
@@ -68,7 +68,7 @@ import TypeLevel.NaturalNumber
 -- @+node:gcross.20100730133924.1263:Types
 -- @+node:gcross.20100730133924.1264:AbsolutelyApproximateValue
 {-|
-The newtype 'AbsolutelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a tolerance; two values are equal to each other if the absolute difference is less than or equal to this tolerance.  The type annotation @absolute_tolerance@, which must be an instance of 'AbsoluteTolerance', specifies the tolerance.  For convenience, one may specify the tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a tolerance of 0.0001).
+The newtype 'AbsolutelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a tolerance; two values are equal to each other if the absolute difference is less than or equal to this tolerance.  The type annotation @absolute_tolerance@, which must be an instance of 'AbsoluteTolerance', specifies the tolerance.  For convenience, one may specify the tolerance using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifies a tolerance of 0.0001).
 
 It is recommended that one use this wrapper by creating aliases, such as
 
@@ -87,9 +87,9 @@ newtype AbsolutelyApproximateValue absolute_tolerance value =
 {-|
 The newtype 'RelativelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a zero tolerance and a relative tolerance;  two values are equal to each other if their absolute values are both less than or equal to the zero tolerance, or if the absolute difference between them divided by the average of the absolute values is less than or equal to the relative tolerance.
 
-The type annotation @zero_tolerance@, which must be an instance of 'ZeroTolerance', specifies the tolerance within which a value is considered to be equal to zero.  For convenience, one may specify the tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a tolerance of 0.0001).
+The type annotation @zero_tolerance@, which must be an instance of 'ZeroTolerance', specifies the tolerance within which a value is considered to be equal to zero.  For convenience, one may specify the tolerance using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifies a tolerance of 0.0001).
 
-The type annotation @relative_tolerance@, which must be an instance of 'RelativeTolerance', specifies the relative tolerance within which two values that are not approximately equal to zero are considered to be equal to each other.  For convenience, as with the zero tolerance, one may specify the relative tolerence using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifes a relative tolerance of 0.0001, so that two values are equal if they agree to the first four leading digits).
+The type annotation @relative_tolerance@, which must be an instance of 'RelativeTolerance', specifies the relative tolerance within which two values that are not approximately equal to zero are considered to be equal to each other.  For convenience, as with the zero tolerance, one may specify the relative tolerance using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifies a relative tolerance of 0.0001, so that two values are equal if they agree to the first four leading digits).
 
 It is recommended that one use this wrapper by creating aliases, such as
 
@@ -106,7 +106,7 @@ newtype RelativelyApproximateValue zero_tolerance relative_tolerance value =
 -- @-node:gcross.20100802173247.1297:RelativelyApproximateValue
 -- @+node:gcross.20100730133924.1267:Digits
 {-|
-Digits is a type constructor that can be used to specify tolerances using type-level natural numbers.  Annoting a wrapper with the type @Digits n@ specifies that the corresponding tolerance has a numerical value of @10^(-n)@.
+Digits is a type constructor that can be used to specify tolerances using type-level natural numbers.  Annotating a wrapper with the type @Digits n@ specifies that the corresponding tolerance has a numerical value of @10^(-n)@.
 -}
 data Digits n
 -- @-node:gcross.20100730133924.1267:Digits
