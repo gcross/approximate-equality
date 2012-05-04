@@ -130,6 +130,7 @@ class ZeroTolerance zero_tolerance where
 instance (AbsoluteTolerance tolerance
          ,Ord value
          ,Fractional value
+         ,Show value
          ) =>
          Show (AbsolutelyApproximateValue tolerance value)
   where
@@ -265,6 +266,7 @@ instance (ZeroTolerance zerotol
          ,RelativeTolerance reltol
          ,Ord value
          ,Fractional value
+         ,Show value
          ) =>
          Show (RelativelyApproximateValue zerotol reltol value)
   where
