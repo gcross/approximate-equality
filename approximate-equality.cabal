@@ -12,7 +12,7 @@ Description:         The purpose of this module is to provide newtype wrappers t
                      See the documentation for Data.Eq.Approximate for more detailed information on how to use this package.
 
                      New in version 1.1:  Added explicit Show constraints to the Show instances, as the Num class in the newest version of GHC (wisely) no longer includes Show as a constraint.
-Cabal-version:       >=1.2.3
+Cabal-version:       >= 1.6
 Build-type:          Simple
 Category:	          Data
 
