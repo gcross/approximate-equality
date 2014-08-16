@@ -1,5 +1,5 @@
 Name:                approximate-equality
-Version:             1.1
+Version:             1.1.0.1
 License:             BSD3
 License-file:        LICENSE
 Author:              Gregory Crosswhite
@@ -17,6 +17,15 @@ Build-type:          Simple
 Category:	          Data
 
 Library
-    Build-depends:   base >= 3 && < 4.6,
-                     type-level-natural-number >= 1.0 && < 1.1
+    Build-depends:   base >= 3 && < 5,
+                     type-level-natural-number >= 1.0 && < 2.1
     Exposed-modules: Data.Eq.Approximate
+
+Source-repository head
+  Type:                git
+  Location:            git://github.com/gcross/approximate-equality.git
+
+Source-repository this
+  Type:                git
+  Location:            git://github.com/gcross/approximate-equality.git
+  Tag:                 1.1.0.1
