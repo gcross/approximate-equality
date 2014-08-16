@@ -1,9 +1,9 @@
 Name:                approximate-equality
-Version:             1.1.0.1
+Version:             1.1.0.2
 License:             BSD3
 License-file:        LICENSE
 Author:              Gregory Crosswhite
-Maintainer:          Gregory Crosswhite <gcross@phys.washington.edu>
+Maintainer:          Gregory Crosswhite <gcrosswhite@gmail.com>
 Stability:           Provisional
 Homepage:            http://github.com/gcross/approximate-equality
 Synopsis:            Newtype wrappers for approximate equality
@@ -28,4 +28,4 @@ Source-repository head
 Source-repository this
   Type:                git
   Location:            git://github.com/gcross/approximate-equality.git
-  Tag:                 1.1.0.1
+  Tag:                 1.1.0.2
