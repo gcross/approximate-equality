@@ -1,5 +1,7 @@
 
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE PolyKinds #-}
 
 {-|
 The purpose of this module is to provide newtype wrapper that allows one to effectively override the equality operator of a value so that it is /approximate/ rather than /exact/.  For example, the type
@@ -46,7 +48,7 @@ module Data.Eq.Approximate
 import Control.Arrow
 import Data.Function
 import Text.Printf
-
+import GHC.TypeLits
 import TypeLevel.NaturalNumber
 
 {-|
@@ -86,7 +88,7 @@ newtype RelativelyApproximateValue zero_tolerance relative_tolerance value =
 {-|
 Digits is a type constructor that can be used to specify tolerances using type-level natural numbers.  Annotating a wrapper with the type @Digits n@ specifies that the corresponding tolerance has a numerical value of @10^(-n)@.
 -}
-data Digits n
+data Digits (n :: k)
 -- $classes
 -- The classes in this section are used to associate numerical tolerance information with the types that are used to annotate the type wrappers 'AbsolutelyApproximateValue' and 'RelativelyApproximateValue'.  One typically should not need to use them since the annotation @Digits n@ should cover most common cases.
 -- 
@@ -432,6 +434,16 @@ instance NaturalNumber n => ZeroTolerance (Digits n) where
         toleranceFromDigits
         .
         getZeroTolerance
+
+instance KnownNat n => AbsoluteTolerance (Digits n) where
+  absoluteToleranceOf = toleranceFromKnownNat . getAbsoluteTolerance
+instance KnownNat n => RelativeTolerance (Digits n) where
+  relativeToleranceOf = toleranceFromKnownNat . getRelativeTolerance
+instance KnownNat n => ZeroTolerance (Digits n) where
+  zeroToleranceOf = toleranceFromKnownNat . getZeroTolerance
+
+
+
 {-|
 This is a convenience (constant) function for extracting the type-level natural number contained within the 'Digits' type constructor; it returns the value 'undefined', so don't try to evaluate the result.
 -}
@@ -451,6 +463,11 @@ toleranceFromDigits =
     naturalNumberAsInt
     .
     unwrapDigits
+
+-- | The same convenience function as above, but then for the case of GHCs TypeLits
+toleranceFromKnownNat   :: (Fractional value, KnownNat n) => proxy n -> value
+toleranceFromKnownNat p = recip . fromInteger $ (10 :: Integer) ^ (natVal p)
+
 {-|
 This is a convenience (constant) function for extracting the relative tolerance type annotation from 'AbsolutelyApproximateValue';  it returns the value 'undefined', so don't try to evaluate the result.
 -}
