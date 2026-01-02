@@ -1,6 +1,7 @@
+Cabal-version:       3.4
 Name:                approximate-equality
 Version:             1.1.0.2
-License:             BSD3
+License:             BSD-3-Clause
 License-file:        LICENSE
 Author:              Gregory Crosswhite
 Maintainer:          Gregory Crosswhite <gcrosswhite@gmail.com>
@@ -12,9 +13,8 @@ Description:         The purpose of this module is to provide newtype wrappers t
                      See the documentation for Data.Eq.Approximate for more detailed information on how to use this package.
 
                      New in version 1.1:  Added explicit Show constraints to the Show instances, as the Num class in the newest version of GHC (wisely) no longer includes Show as a constraint.
-Cabal-version:       >= 1.6
 Build-type:          Simple
-Category:	          Data
+Category:            Data
 
 Library
     Build-depends:   base >= 3 && < 5,
@@ -23,9 +23,9 @@ Library
 
 Source-repository head
   Type:                git
-  Location:            git://github.com/gcross/approximate-equality.git
+  Location:            https://github.com/gcross/approximate-equality.git
 
 Source-repository this
   Type:                git
-  Location:            git://github.com/gcross/approximate-equality.git
+  Location:            https://github.com/gcross/approximate-equality.git
   Tag:                 1.1.0.2
