@@ -17,8 +17,8 @@ Build-type:          Simple
 Category:            Data
 
 Library
-    Build-depends:   base >= 3 && < 5,
-                     type-level-natural-number >= 1.0 && < 2.1
+    Build-depends:   base >= 3 && < 5
+                     -- type-level-natural-number >= 1.0 && < 2.1
     Exposed-modules: Data.Eq.Approximate
 
 Source-repository head

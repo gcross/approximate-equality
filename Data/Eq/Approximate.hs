@@ -1,7 +1,7 @@
-
+{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds #-}
 
 {-|
 The purpose of this module is to provide newtype wrapper that allows one to effectively override the equality operator of a value so that it is /approximate/ rather than /exact/.  For example, the type
@@ -41,7 +41,6 @@ module Data.Eq.Approximate
     ,getZeroTolerance
      -- * Tolerance annotations using Digits
     ,Digits(..)
-    ,unwrapDigits
     ,toleranceFromDigits
     ) where
 
@@ -49,7 +48,6 @@ import Control.Arrow
 import Data.Function
 import Text.Printf
 import GHC.TypeLits
-import TypeLevel.NaturalNumber
 
 {-|
 The newtype 'AbsolutelyApproximateValue' is a wrapper that can contain an arbitrary value tagged with a tolerance; two values are equal to each other if the absolute difference is less than or equal to this tolerance.  The type annotation @absolute_tolerance@, which must be an instance of 'AbsoluteTolerance', specifies the tolerance.  For convenience, one may specify the tolerance using the type @Digits n@ where @n@ is a type-level natural specifying the number of decimals in the tolerance (i.e., @Digits Four@ specifies a tolerance of 0.0001).
@@ -88,7 +86,7 @@ newtype RelativelyApproximateValue zero_tolerance relative_tolerance value =
 {-|
 Digits is a type constructor that can be used to specify tolerances using type-level natural numbers.  Annotating a wrapper with the type @Digits n@ specifies that the corresponding tolerance has a numerical value of @10^(-n)@.
 -}
-data Digits (n :: k)
+data Digits (n :: Nat)
 -- $classes
 -- The classes in this section are used to associate numerical tolerance information with the types that are used to annotate the type wrappers 'AbsolutelyApproximateValue' and 'RelativelyApproximateValue'.  One typically should not need to use them since the annotation @Digits n@ should cover most common cases.
 -- 
@@ -419,21 +417,6 @@ instance
     isNegativeZero = unwrapRAVAndApply isNegativeZero
     isIEEE = unwrapRAVAndApply isIEEE
     atan2 = liftRAV2 atan2
-instance NaturalNumber n => AbsoluteTolerance (Digits n) where
-    absoluteToleranceOf =
-        toleranceFromDigits
-        .
-        getAbsoluteTolerance
-instance NaturalNumber n => RelativeTolerance (Digits n) where
-    relativeToleranceOf =
-        toleranceFromDigits
-        .
-        getRelativeTolerance
-instance NaturalNumber n => ZeroTolerance (Digits n) where
-    zeroToleranceOf =
-        toleranceFromDigits
-        .
-        getZeroTolerance
 
 instance KnownNat n => AbsoluteTolerance (Digits n) where
   absoluteToleranceOf = toleranceFromKnownNat . getAbsoluteTolerance
@@ -442,17 +425,10 @@ instance KnownNat n => RelativeTolerance (Digits n) where
 instance KnownNat n => ZeroTolerance (Digits n) where
   zeroToleranceOf = toleranceFromKnownNat . getZeroTolerance
 
-
-
-{-|
-This is a convenience (constant) function for extracting the type-level natural number contained within the 'Digits' type constructor; it returns the value 'undefined', so don't try to evaluate the result.
--}
-unwrapDigits :: Digits n -> n
-unwrapDigits _ = undefined
 {-|
 This is a convenience (constant) function that computes the numerical tolerance specified by @Digits n@, which is @10^(-n)@.
 -}
-toleranceFromDigits :: NaturalNumber n => Fractional value => Digits n -> value
+toleranceFromDigits :: forall n value. (Fractional value, KnownNat n) => Digits n -> value
 toleranceFromDigits =
     recip
     .
@@ -460,9 +436,7 @@ toleranceFromDigits =
     .
     ((10::Integer) ^)
     .
-    naturalNumberAsInt
-    .
-    unwrapDigits
+    natVal
 
 -- | The same convenience function as above, but then for the case of GHCs TypeLits
 toleranceFromKnownNat   :: (Fractional value, KnownNat n) => proxy n -> value
